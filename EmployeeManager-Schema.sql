@@ -1,4 +1,4 @@
-DROP DATABASE IF EXISTS top_songsDB;
+DROP DATABASE IF EXISTS employee_managerDB;
 CREATE database employee_managerDB;
 
 USE employee_managerDB;
