@@ -1,0 +1,23 @@
+{
+  "name": "employee-management-system",
+  "version": "1.0.0",
+  "description": "CRUD app for managing employees",
+  "main": "employeeManager.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stephenstuder/employee-management-system.git"
+  },
+  "author": "Stephen Studer",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stephenstuder/employee-management-system/issues"
+  },
+  "homepage": "https://github.com/stephenstuder/employee-management-system#readme",
+  "dependencies": {
+    "inquirer": "^7.1.0",
+    "mysql2": "^2.1.0"
+  }
+}
