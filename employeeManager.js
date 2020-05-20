@@ -11,7 +11,8 @@ const main = async () => {
             database: "employee_managerDB",
         });
         console.log(`Connected to database with id ${connection.threadId}`);
-        
+        //All the inquirier code goes here
+
         await readProducts(connection);
         connection.end();
     } catch (err) {
@@ -22,9 +23,9 @@ const main = async () => {
 const readProducts = async (connection) => {
     console.log("Selecting all rows ---------------")
     
-    const [rows, fields] = await connection.query("SELECT * FROM employee");
+    const [rows, fields] = await connection.query("SELECT * FROM department");
     
-    console.log(rows);
+    console.table(rows);
 };
 
 main();
