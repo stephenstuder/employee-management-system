@@ -20,12 +20,31 @@ const main = async () => {
     }
 };
 
+//add for each column
+
+//view for each column
+
+//update for employee role
+
+//update associated manager
+
+//delete departments, roles, and employees
+
+//view totalized budget of the department - ie combined salaries of all employees in the department
+
 const readProducts = async (connection) => {
+
+    //convert so that this joins all 3 tables
+
     console.log("Selecting all rows ---------------")
     
     const [rows, fields] = await connection.query("SELECT * FROM department");
     
     console.table(rows);
 };
+
+//inquirer function that allows functionality to be visualized
+
+
 
 main();
