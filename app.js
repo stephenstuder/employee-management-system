@@ -32,12 +32,10 @@ const main = async () => {
 
 //view totalized budget of the department - ie combined salaries of all employees in the department
 
-const readProducts = async (connection) => {
+const queryDatabase = async (connection, query) => {
   //convert so that this joins all 3 tables
 
-  console.log("Selecting all rows ---------------");
-
-  const [rows, fields] = await connection.query(viewAllEmployeesQuery);
+  const [rows, fields] = await connection.query(query);
 
   console.table(rows);
 };
@@ -62,12 +60,14 @@ const runInquirer = async (connection) => {
     action = await inquirer.prompt(chooseAction);
     switch (action.type) {
       case "View All Employees":
-        await readProducts(connection);
+        await queryDatabase(connection, viewAllEmployeesQuery);
         break;
       case "View All Employees By Department":
+        await queryDatabase(connection, viewAllEmployeesByDepartmentQuery);
         console.log("it works by department!");
         break;
       case "View All Employees By Manager":
+        await queryDatabase(connection, viewAllEmployeesByManagerQuery);
         console.log("it works!");
         break;
       case "Add Employee":
@@ -92,6 +92,8 @@ const runInquirer = async (connection) => {
 };
 
 const viewAllEmployeesQuery = `SELECT first_name, last_name, title, salary, department_name FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id;`;
+const viewAllEmployeesByManagerQuery = `SELECT manager_id, first_name, last_name, title, salary, department_name FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id GROUP BY manager_id;`;
+const viewAllEmployeesByDepartmentQuery = `SELECT department_name, first_name, last_name, title, salary FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id ORDER BY department_name;`;
 
 const chooseAction = [
   {
