@@ -13,8 +13,8 @@ const main = async () => {
         console.log(`Connected to database with id ${connection.threadId}`);
         //All the inquirier code goes here
 
-        //await readProducts(connection);
-        await runInquirer();
+        await readProducts(connection);
+        //await runInquirer();
         connection.end();
     } catch (err) {
         console.log(err);
@@ -59,6 +59,33 @@ console.log(`
 
 `)
     let action = await inquirer.prompt(chooseAction);
+    switch (action.type) {
+        case 'View All Employees':
+            console.log('it works!');
+            break;
+        case 'View All Employees By Department':
+            console.log('it works by department!');
+            break;
+        case 'View All Employees By Manager':
+            console.log('it works!');
+            break;
+        case 'Add Employee':
+            console.log('it works!');
+            break;
+        case 'Remove Employee':
+            console.log('it works!');
+            break;
+        case 'Update Employee Role':
+            console.log('it works!');
+            break;
+        case 'Update Employee Manager':
+            console.log('it works!');
+            break;
+        case 'Exit Program':
+            break;
+        default:
+            console.log('Something went wrong...');
+    }
 }
 
 const chooseAction = [{
