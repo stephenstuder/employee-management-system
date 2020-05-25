@@ -81,7 +81,7 @@ const runInquirer = async (connection) => {
       case "Add Role":
           break;
       case "Add Employee":
-        await addEmployee();
+        await addEmployee(connection);
         break;
       case "Remove Employee":
         let employeeList = await queryDatabase(connection, viewAllEmployees);
@@ -111,7 +111,7 @@ const viewAllDepartments = `SELECT * FROM department`;
 
 const addDepartment = ``
 
-const addEmployee = async () => {
+const addEmployee = async (connection) => {
     await inquirer.prompt([
         {
             name: "firstName",
@@ -126,12 +126,22 @@ const addEmployee = async () => {
         {
             name: "jobRole",
             type: "rawlist",
-            message: "Select a job role: ",
-            choices: ["Engineer", "Manager", "Sales"] 
+            message: "Select a job role id: ",
+            choices: ["1", "2", "3"] 
         },
     ])
-    .then((answer) => {
-        console.log(answer.firstName, answer.lastName, answer.jobRole);
+    .then(async (answer) => {
+        console.log(`INSERTING ${answer.firstName, answer.lastName, parseInt(answer.jobRole)} INTO DATABASE \n`);
+        const query = await connection.query(`INSERT INTO employee SET ?`,
+        {
+            first_name: answer.firstName,
+            last_name: answer.lastName,
+            role_id: answer.jobRole
+        }, (err, res) => {
+            if (err) throw err;
+            console.log(res.affectedRows + "product inserted!\n")
+        }
+        )
     })
 }
 
