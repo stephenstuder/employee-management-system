@@ -37,7 +37,7 @@ const queryDatabase = async (connection, query) => {
 
   const [rows, fields] = await connection.query(query);
 
-  console.table(rows);
+  return rows;
 };
 
 //inquirer function that allows functionality to be visualized
@@ -60,21 +60,32 @@ const runInquirer = async (connection) => {
     action = await inquirer.prompt(chooseAction);
     switch (action.type) {
       case "View All Employees":
-        await queryDatabase(connection, viewAllEmployeesQuery);
+        console.table(await queryDatabase(connection, viewAllEmployeesQuery));
         break;
       case "View All Employees By Department":
-        await queryDatabase(connection, viewAllEmployeesByDepartmentQuery);
+        console.table(await queryDatabase(connection, viewAllEmployeesByDepartmentQuery));
         console.log("it works by department!");
         break;
       case "View All Employees By Manager":
-        await queryDatabase(connection, viewAllEmployeesByManagerQuery);
+        console.table(await queryDatabase(connection, viewAllEmployeesByManagerQuery));
         console.log("it works!");
         break;
+      case "View Departments":
+        console.table(await queryDatabase(connection, viewAllDepartments));
+          break;
+      case "View Roles":
+        console.table(await queryDatabase(connection, viewAllRoles));
+          break;
+      case "Add Department":
+          break;
+      case "Add Role":
+          break;
       case "Add Employee":
-        console.log("it works!");
+        await addEmployee();
         break;
       case "Remove Employee":
-        console.log("it works!");
+        let employeeList = await queryDatabase(connection, viewAllEmployees);
+        console.log(employeeList);
         break;
       case "Update Employee Role":
         console.log("it works!");
@@ -93,7 +104,36 @@ const runInquirer = async (connection) => {
 
 const viewAllEmployeesQuery = `SELECT first_name, last_name, title, salary, department_name FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id;`;
 const viewAllEmployeesByManagerQuery = `SELECT manager_id, first_name, last_name, title, salary, department_name FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id ORDER BY manager_id DESC;`;
-const viewAllEmployeesByDepartmentQuery = `SELECT department_name, first_name, last_name, title, salary FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id ORDER BY department_name;`;
+const viewAllEmployeesByDepartmentQuery = `SELECT department_name, first_name, last_name, title FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id ORDER BY department_name;`;
+const viewAllEmployees = `SELECT id, first_name, last_name FROM employee`;
+const viewAllRoles = `SELECT * FROM employee_role`;
+const viewAllDepartments = `SELECT * FROM department`;
+
+const addDepartment = ``
+
+const addEmployee = async () => {
+    await inquirer.prompt([
+        {
+            name: "firstName",
+            type: "input",
+            message: "Enter first name of employee: "
+        },
+        {
+            name: "lastName",
+            type: "input",
+            message: "Enter first name of employee: "
+        },
+        {
+            name: "jobRole",
+            type: "rawlist",
+            message: "Select a job role: ",
+            choices: ["Engineer", "Manager", "Sales"] 
+        },
+    ])
+    .then((answer) => {
+        console.log(answer.firstName, answer.lastName, answer.jobRole);
+    })
+}
 
 const chooseAction = [
   {
@@ -104,6 +144,10 @@ const chooseAction = [
       "View All Employees",
       "View All Employees By Department",
       "View All Employees By Manager",
+      "View Departments",
+      "View Roles",
+      "Add Department",
+      "Add Role",
       "Add Employee",
       "Remove Employee",
       "Update Employee Role",
@@ -112,5 +156,16 @@ const chooseAction = [
     ],
   },
 ];
+
+// const selectEmployee = [
+//     {
+//       type: "list",
+//       name: "type",
+//       message: "Employee's in Database",
+//       choices: [
+//         employeeList
+//       ],
+//     },
+//   ];
 
 main();
