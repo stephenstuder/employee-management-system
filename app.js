@@ -43,7 +43,7 @@ const runInquirer = async (connection) => {
     
     `);
 
-  let action;
+  let action, employeeList, employeeArray, roleList, roleArray;
   do {
     action = await inquirer.prompt(chooseAction);
     switch (action.type) {
@@ -74,12 +74,17 @@ const runInquirer = async (connection) => {
         await addEmployee(connection);
         break;
       case "Remove Employee":
-        let employeeList = await queryDatabase(connection, employeeListQuery);
-        let employeeArray = buildArray(employeeList);
+        employeeList = await queryDatabase(connection, employeeListQuery);
+        employeeArray = buildArrayEmployee(employeeList);
         await removeEmployee(connection, employeeArray);
         break;
       case "Update Employee Role":
-        console.log("it works!");
+        employeeList = await queryDatabase(connection, employeeListQuery);
+        employeeArray = buildArrayEmployee(employeeList);
+        roleList = await queryDatabase(connection, roleListQuery);
+        console.log(roleList)
+        roleArray = buildArrayRole(roleList);
+        console.log(employeeArray, roleArray);
         break;
       case "Update Employee Manager":
         console.log("it works!");
@@ -93,15 +98,23 @@ const runInquirer = async (connection) => {
   } while (action.type !== "Exit Program");
 };
 
-const buildArray = (sqlReturn) => {
+const buildArrayEmployee = (sqlReturn) => {
   let array = [];
   for (let i = 0; i < sqlReturn.length; i++) {
     array.push(sqlReturn[i].Employee);
   }
   return array;
 };
+const buildArrayRole = (sqlReturn) => {
+  let array = [];
+  for (let i = 0; i < sqlReturn.length; i++) {
+    array.push(sqlReturn[i].Title);
+  }
+  return array;
+};
 //Queries for viewing information
 const employeeListQuery = `SELECT CONCAT(first_name, ' ', last_name) as Employee FROM employee;`;
+const roleListQuery = `SELECT title FROM employee_role;`;
 const viewAllEmployeesQuery = `SELECT first_name, last_name, title, salary, department_name FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id;`;
 const viewAllEmployeesByManagerQuery = `SELECT manager_id, first_name, last_name, title, salary, department_name FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id ORDER BY manager_id DESC;`;
 const viewAllEmployeesByDepartmentQuery = `SELECT department_name, first_name, last_name, title FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id ORDER BY department_name;`;
