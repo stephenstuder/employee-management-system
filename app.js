@@ -20,18 +20,6 @@ const main = async () => {
   }
 };
 
-//add for each column
-
-//view for each column
-
-//update for employee role
-
-//update associated manager
-
-//delete departments, roles, and employees
-
-//view totalized budget of the department - ie combined salaries of all employees in the department
-
 const queryDatabase = async (connection, query) => {
   //convert so that this joins all 3 tables
 
@@ -72,20 +60,23 @@ const runInquirer = async (connection) => {
         break;
       case "View Departments":
         console.table(await queryDatabase(connection, viewAllDepartments));
-          break;
+        break;
       case "View Roles":
         console.table(await queryDatabase(connection, viewAllRoles));
-          break;
+        break;
       case "Add Department":
-          break;
+        await addDepartment(connection);
+        break;
       case "Add Role":
-          break;
+        await addRole(connection);
+        break;
       case "Add Employee":
         await addEmployee(connection);
         break;
       case "Remove Employee":
-        let employeeList = await queryDatabase(connection, viewAllEmployees);
-        console.log(employeeList);
+        let employeeList = await queryDatabase(connection, employeeListQuery);
+        let employeeArray = buildArray(employeeList);
+        await removeEmployee(connection, employeeArray);
         break;
       case "Update Employee Role":
         console.log("it works!");
@@ -102,6 +93,15 @@ const runInquirer = async (connection) => {
   } while (action.type !== "Exit Program");
 };
 
+const buildArray = (sqlReturn) => {
+  let array = [];
+  for (let i = 0; i < sqlReturn.length; i++) {
+    array.push(sqlReturn[i].Employee);
+  }
+  return array;
+};
+//Queries for viewing information
+const employeeListQuery = `SELECT CONCAT(first_name, ' ', last_name) as Employee FROM employee;`;
 const viewAllEmployeesQuery = `SELECT first_name, last_name, title, salary, department_name FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id;`;
 const viewAllEmployeesByManagerQuery = `SELECT manager_id, first_name, last_name, title, salary, department_name FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id ORDER BY manager_id DESC;`;
 const viewAllEmployeesByDepartmentQuery = `SELECT department_name, first_name, last_name, title FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id ORDER BY department_name;`;
@@ -109,41 +109,129 @@ const viewAllEmployees = `SELECT id, first_name, last_name FROM employee`;
 const viewAllRoles = `SELECT * FROM employee_role`;
 const viewAllDepartments = `SELECT * FROM department`;
 
-const addDepartment = ``
-
-const addEmployee = async (connection) => {
-    await inquirer.prompt([
-        {
-            name: "firstName",
-            type: "input",
-            message: "Enter first name of employee: "
-        },
-        {
-            name: "lastName",
-            type: "input",
-            message: "Enter first name of employee: "
-        },
-        {
-            name: "jobRole",
-            type: "rawlist",
-            message: "Select a job role id: ",
-            choices: ["1", "2", "3"] 
-        },
+const addDepartment = async (connection) => {
+  await inquirer
+    .prompt([
+      {
+        name: "departmentName",
+        type: "input",
+        message: "Enter the name of new department: ",
+      },
     ])
     .then(async (answer) => {
-        console.log(`INSERTING ${answer.firstName, answer.lastName, parseInt(answer.jobRole)} INTO DATABASE \n`);
-        const query = await connection.query(`INSERT INTO employee SET ?`,
+      console.log(`INSERTING ${answer.departmentName} INTO DATABASE`);
+      const query = await connection.query(
+        `INSERT INTO department SET ?`,
         {
-            first_name: answer.firstName,
-            last_name: answer.lastName,
-            role_id: answer.jobRole
-        }, (err, res) => {
-            if (err) throw err;
-            console.log(res.affectedRows + "product inserted!\n")
+          department_name: answer.departmentName,
+        },
+        (err, res) => {
+          if (err) throw err;
+          console.log(`${res.affectedRows} inserted!`);
         }
-        )
-    })
-}
+      );
+    });
+};
+const removeEmployee = async (connection, employeeList) => {
+  await inquirer
+    .prompt([
+      {
+        name: "removedEmployee",
+        type: "rawlist",
+        message: "Which employee do you wish to remove?",
+        choices: employeeList
+      },
+    ])
+    .then(async (answer) => {
+      console.log(`REMOVING ${answer.removedEmployee} FROM DATABASE`);
+      const query = await connection.query(
+        `DELETE FROM employee WHERE CONCAT(first_name, ' ', last_name) = '${answer.removedEmployee}'`,
+        (err, res) => {
+          if (err) throw err;
+          console.log(`${res.affectedRows} deleted!`);
+        }
+      );
+    });
+};
+
+const addRole = async (connection) => {
+  await inquirer
+    .prompt([
+      {
+        name: "title",
+        type: "input",
+        message: "Enter name of the role: ",
+      },
+      {
+        name: "salary",
+        type: "input",
+        message: "Enter the salary of the role (numbers only): ",
+      },
+      {
+        name: "departmentId",
+        type: "rawlist",
+        message: "Select a department id: ",
+        choices: ["1", "2", "3", "4"],
+      },
+      {
+        name: "yearHired",
+        type: "input",
+        message: "Enter the year hired (numbers only):",
+      },
+    ])
+    .then(async (answer) => {
+      console.log(`INSERTING ${(answer.title, answer.salary, answer.departmentId, answer.yearHired)} INTO DATABASE \n`);
+      const query = await connection.query(
+        `INSERT INTO employee_role SET ?`,
+        {
+          title: answer.title,
+          salary: answer.salary,
+          department_id: answer.departmentId,
+          year_hired: answer.yearHired,
+        },
+        (err, res) => {
+          if (err) throw err;
+          console.log(`${res.affectedRows} inserted!\n`);
+        }
+      );
+    });
+};
+const addEmployee = async (connection) => {
+  await inquirer
+    .prompt([
+      {
+        name: "firstName",
+        type: "input",
+        message: "Enter first name of employee: ",
+      },
+      {
+        name: "lastName",
+        type: "input",
+        message: "Enter first name of employee: ",
+      },
+      {
+        name: "jobRole",
+        type: "rawlist",
+        message: "Select a job role id: ",
+        choices: ["1", "2", "3"],
+      },
+    ])
+    .then(async (answer) => {
+      console.log(`INSERTING ${(answer.firstName, answer.lastName, parseInt(answer.jobRole))} INTO DATABASE \n`);
+      const query = await connection.query(
+        `INSERT INTO employee SET ?`,
+        {
+          first_name: answer.firstName,
+          last_name: answer.lastName,
+          role_id: answer.jobRole,
+        },
+        (err, res) => {
+          if (err) throw err;
+          console.log(`${res.affectedRows} inserted!\n`);
+        }
+      );
+    });
+};
 
 const chooseAction = [
   {
@@ -166,16 +254,5 @@ const chooseAction = [
     ],
   },
 ];
-
-// const selectEmployee = [
-//     {
-//       type: "list",
-//       name: "type",
-//       message: "Employee's in Database",
-//       choices: [
-//         employeeList
-//       ],
-//     },
-//   ];
 
 main();
