@@ -82,12 +82,8 @@ const runInquirer = async (connection) => {
         employeeList = await queryDatabase(connection, employeeListQuery);
         employeeArray = buildArrayEmployee(employeeList);
         roleList = await queryDatabase(connection, roleListQuery);
-        console.log(roleList)
         roleArray = buildArrayRole(roleList);
-        console.log(employeeArray, roleArray);
-        break;
-      case "Update Employee Manager":
-        console.log("it works!");
+        await updateEmployeeRole(connection, employeeArray, roleArray);
         break;
       case "Exit Program":
         break;
@@ -106,15 +102,17 @@ const buildArrayEmployee = (sqlReturn) => {
   return array;
 };
 const buildArrayRole = (sqlReturn) => {
-  let array = [];
+  let arrayRole = [];
+  console.log(sqlReturn[0].title);
   for (let i = 0; i < sqlReturn.length; i++) {
-    array.push(sqlReturn[i].Title);
+    arrayRole.push(sqlReturn[i].title);
   }
-  return array;
+  return arrayRole;
 };
 //Queries for viewing information
 const employeeListQuery = `SELECT CONCAT(first_name, ' ', last_name) as Employee FROM employee;`;
 const roleListQuery = `SELECT title FROM employee_role;`;
+const roleListWithIdQuery = `SELECT role_id, title FROM employee_role;`;
 const viewAllEmployeesQuery = `SELECT first_name, last_name, title, salary, department_name FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id;`;
 const viewAllEmployeesByManagerQuery = `SELECT manager_id, first_name, last_name, title, salary, department_name FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id ORDER BY manager_id DESC;`;
 const viewAllEmployeesByDepartmentQuery = `SELECT department_name, first_name, last_name, title FROM employee, employee_role, department WHERE employee.role_id = employee_role.role_id AND employee_role.department_id = department.department_id ORDER BY department_name;`;
@@ -152,19 +150,48 @@ const removeEmployee = async (connection, employeeList) => {
         name: "removedEmployee",
         type: "rawlist",
         message: "Which employee do you wish to remove?",
-        choices: employeeList
+        choices: employeeList,
       },
     ])
     .then(async (answer) => {
       console.log(`REMOVING ${answer.removedEmployee} FROM DATABASE`);
-      const query = await connection.query(
-        `DELETE FROM employee WHERE CONCAT(first_name, ' ', last_name) = '${answer.removedEmployee}'`,
-        (err, res) => {
-          if (err) throw err;
-          console.log(`${res.affectedRows} deleted!`);
-        }
-      );
+      const query = await connection.query(`DELETE FROM employee WHERE CONCAT(first_name, ' ', last_name) = '${answer.removedEmployee}'`, (err, res) => {
+        if (err) throw err;
+        console.log(`${res.affectedRows} deleted!`);
+      });
     });
+};
+
+const updateEmployeeRole = async (connection, employeeArray, roleArray) => {
+  await inquirer
+  .prompt([
+    {
+      name: "employee",
+      type: "rawlist",
+      message: "Which employee would you like to update?",
+      choices: employeeArray
+    },
+    {
+      name: "role",
+      type: "rawlist",
+      message: "What role would you like to update this employee to?",
+      choices: roleArray
+    }
+  ])
+  .then(async (answer) => {
+    roleIdList = await queryDatabase(connection, roleListWithIdQuery);
+    let updatedId;
+    for (let i = 0; i < roleIdList.length; i++){
+      if(roleIdList[i].title == answer.role) {
+        updatedId = roleIdList[i].role_id;
+      }
+    }
+    console.log(`Updating ${answer.employee} to the role of ${answer.role}`);
+    const query = await connection.query(`UPDATE employee SET role_id = ${updatedId} WHERE CONCAT(first_name, ' ', last_name) = '${answer.employee}'`, (err, res) => {
+      if (err) console.log(err);
+      console.log(`${res.affectedRows} updated!`);
+    });
+  });
 };
 
 const addRole = async (connection) => {
@@ -262,7 +289,6 @@ const chooseAction = [
       "Add Employee",
       "Remove Employee",
       "Update Employee Role",
-      "Update Employee Manager",
       "Exit Program",
     ],
   },
