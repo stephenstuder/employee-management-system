@@ -1,4 +1,5 @@
-<img src="./screenshot.png" alt="html image" width="1000"/>
+<img src="./screenshot.PNG" alt="html image" width="1000"/>
+
 # employee-management-system
 
 ## How To Use
